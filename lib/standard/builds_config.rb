@@ -14,12 +14,22 @@ module Standard
     end
 
     def call(argv, search_path = Dir.pwd)
-      standard_yaml_path = @resolves_yaml_option.call(argv, search_path, "--config", ".standard.yml")
+      standard_yaml_path = @resolves_yaml_option.call(
+        argv,
+        search_path,
+        "--config",
+        [File.join(".config", "standardrb", "config.yml"), ".standard.yml"]
+      )
 
       # Don't load the existing todo file when generating a new todo file.  Otherwise the
       # new todo file won't have the ignore rules in the existing file.
       todo_yaml_path = unless argv.include?("--generate-todo")
-        @resolves_yaml_option.call(argv, search_path, "--todo", ".standard_todo.yml")
+        @resolves_yaml_option.call(
+          argv,
+          search_path,
+          "--todo",
+          [File.join(".config", "standardrb", "todo.yml"), ".standard_todo.yml"]
+        )
       end
 
       standard_config = @loads_yaml_config.call(standard_yaml_path, todo_yaml_path)

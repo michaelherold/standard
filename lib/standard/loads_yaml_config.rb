@@ -30,7 +30,7 @@ module Standard
         parallel: !!standard_yaml["parallel"],
         ignore: expand_ignore_config(standard_yaml["ignore"]) + expand_ignore_config(todo_yaml["ignore"]),
         default_ignores: standard_yaml.key?("default_ignores") ? !!standard_yaml["default_ignores"] : true,
-        config_root: yaml_path ? Pathname.new(yaml_path).dirname.to_s : nil,
+        config_root: yaml_path ? map_relative_to_root(Pathname.new(yaml_path).dirname.to_s) : nil,
         todo_file: todo_path,
         todo_ignore_files: Array(todo_yaml["ignore"]).map { |f| (Hash === f) ? f.keys.first : f },
         plugins: Array(standard_yaml["plugins"]),
@@ -47,9 +47,10 @@ module Standard
     def expand_ignore_config(ignore_config)
       arrayify(ignore_config).map { |rule|
         if rule.is_a?(String)
-          [rule, ["AllCops"]]
+          [map_relative_to_root(rule), ["AllCops"]]
         elsif rule.is_a?(Hash)
-          rule.entries.first
+          rule, cops = rule.entries.first
+          [map_relative_to_root(rule), cops]
         end
       }
     end
@@ -62,6 +63,10 @@ module Standard
       else
         [object]
       end
+    end
+
+    def map_relative_to_root(path)
+      path.gsub(File.join(".config", "standardrb"), "")
     end
   end
 end

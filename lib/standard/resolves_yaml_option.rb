@@ -2,8 +2,8 @@ require "pathname"
 
 module Standard
   class ResolvesYamlOption
-    def call(argv, search_path, option_name, default_file)
-      search_argv(argv, option_name) || FileFinder.new.call(default_file, search_path)
+    def call(argv, search_path, option_name, default_files)
+      search_argv(argv, option_name) || find_prioritized_default(default_files, search_path)
     end
 
     private
@@ -22,6 +22,13 @@ module Standard
     def argv_value_for(argv, option_name)
       return unless (index = argv.index(option_name))
       argv[index + 1]
+    end
+
+    def find_prioritized_default(default_files, search_path)
+      default_files
+        .lazy
+        .filter_map { |default_file| FileFinder.new.call(default_file, search_path) }
+        .first
     end
   end
 end
